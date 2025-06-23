@@ -1,0 +1,73 @@
+{
+  "id": "agents",
+  "title": "AI Agents Documentation",
+  "description": "Comprehensive guide to the AI agents used in the ClickUp Planner Worker system. Learn about each agent's responsibilities, configuration, and usage patterns.",
+  "sections": [
+    {
+      "title": "Overview",
+      "content": "The AI agents system is the core orchestration engine that manages project creation, synchronization, and quality assurance. Each agent has a specific role and can be configured independently."
+    },
+    {
+      "title": "Template Agent",
+      "content": "The Template Agent is responsible for fetching and managing project templates from R2 storage or CDN. It handles template retrieval, caching, and template customization based on project requirements.",
+      "code": "// Example usage\nconst templateAgent = new TemplateAgent(env);\nconst templates = await templateAgent.execute(context);"
+    },
+    {
+      "title": "AI Agent",
+      "content": "The AI Agent calls AI services (Gemini/OpenAI) to generate project structures, tasks, and other AI-powered content. It handles prompt management, model selection, and response processing.",
+      "code": "// Example configuration\nconst aiAgent = new AIAgent(env);\nconst result = await aiAgent.execute({\n  model: 'gemini',\n  promptType: 'project_creation'\n});"
+    },
+    {
+      "title": "Sync Agent",
+      "content": "The Sync Agent synchronizes data between the local system and ClickUp. It handles project creation, task management, and bidirectional sync operations.",
+      "code": "// Example sync operation\nconst syncAgent = new SyncAgent(env);\nawait syncAgent.execute({\n  createProject: true,\n  createTasks: true\n});"
+    },
+    {
+      "title": "Audit Agent",
+      "content": "The Audit Agent logs events, tracks operations, and triggers pub/sub notifications. It provides comprehensive audit trails for all orchestration activities.",
+      "code": "// Example audit logging\nconst auditAgent = new AuditAgent(env);\nawait auditAgent.execute({\n  logEvents: true,\n  generateReport: true\n});"
+    },
+    {
+      "title": "Guardrails Agent",
+      "content": "The Guardrails Agent enforces output standards, validates data structures, and ensures compliance with organizational policies. It acts as a quality gate for all orchestration outputs.",
+      "code": "// Example validation\nconst guardrailsAgent = new GuardrailsAgent(env);\nconst validation = await guardrailsAgent.execute({\n  validateStructure: true,\n  checkNaming: true\n});"
+    }
+  ],
+  "examples": [
+    {
+      "title": "Creating a New Project Flow",
+      "code": "const flow = [\n  { agent: 'template', config: { templateType: 'project' } },\n  { agent: 'ai', config: { model: 'gemini' } },\n  { agent: 'guardrails', config: { validateStructure: true } },\n  { agent: 'sync', config: { createProject: true } },\n  { agent: 'audit', config: { logEvents: true } }\n];"
+    },
+    {
+      "title": "Agent Health Check",
+      "code": "const agentManager = new AgentManager(env);\nconst health = await agentManager.getAgentHealth();\nconsole.log('Agent health:', health);"
+    }
+  ],
+  "bestPractices": [
+    "Always configure agents with appropriate timeouts and retry limits",
+    "Use the Guardrails Agent to validate outputs before syncing",
+    "Implement proper error handling and logging in agent executions",
+    "Cache template data to improve performance",
+    "Monitor agent health and performance metrics"
+  ],
+  "troubleshooting": {
+    "commonIssues": [
+      {
+        "issue": "Agent execution timeout",
+        "solution": "Increase timeout values in agent configuration"
+      },
+      {
+        "issue": "Template not found",
+        "solution": "Verify template exists in R2 storage and check permissions"
+      },
+      {
+        "issue": "Sync conflicts",
+        "solution": "Use conflict resolution strategies in Sync Agent"
+      }
+    ]
+  },
+  "status": "drafting",
+  "content": null,
+  "last_updated": null,
+  "assigned_to": null
+}

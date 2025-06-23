@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Viewer</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-primary);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-button:hover {
+            background: var(--bg-secondary);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .nav-button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .content {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 500px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .not-found {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .not-found h2 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .not-found p {
+            margin-bottom: 24px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .assign-button {
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assign-button:hover:not(:disabled) {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .assign-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .assign-button .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .content-found {
+            padding: 32px;
+        }
+
+        .content-found h1 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .content-found h2 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+
+        .content-found h3 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .content-found p {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .content-found code {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--text-primary);
+        }
+
+        .content-found pre {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            border-left: 4px solid var(--primary-color);
+            margin: 16px 0;
+        }
+
+        .content-found pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        .error {
+            color: var(--error-color);
+            text-align: center;
+            padding: 40px 20px;
+            font-weight: 500;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .examples {
+            margin-top: 32px;
+        }
+
+        .example {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .example h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .best-practices {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 32px;
+        }
+
+        .best-practices h2 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .best-practices ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .best-practices li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .best-practices li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .troubleshooting {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 32px;
+        }
+
+        .troubleshooting h2 {
+            color: #991b1b;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .issue {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .issue strong {
+            color: var(--text-primary);
+        }
+
+        .issue p {
+            margin-top: 8px;
+            margin-bottom: 0;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .nav {
+                flex-direction: column;
+            }
+
+            .nav-button {
+                text-align: center;
+            }
+
+            .content-found {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Documentation Viewer</h1>
+            <p>Dynamic documentation served from Cloudflare R2 with AI agent assignment capabilities</p>
+        </div>
+
+        <div class="nav" id="nav">
+            <!-- Navigation buttons will be generated by JavaScript -->
+        </div>
+
+        <div class="content" id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Documentation Viewer - CDN Embeddable Version
+         * 
+         * This script provides a complete documentation viewing experience
+         * that can be embedded in any website or used as a standalone page.
+         * 
+         * Features:
+         * - Dynamic content loading from API
+         * - AI agent assignment for missing content
+         * - Responsive design
+         * - Error handling
+         * - Loading states
+         */
+
+        class DocumentationViewer {
+            constructor(config = {}) {
+                this.config = {
+                    apiBase: config.apiBase || '/api/docs',
+                    sections: config.sections || [
+                        { id: 'agents', label: 'Agents' },
+                        { id: 'orchestration', label: 'Orchestration' },
+                        { id: 'api', label: 'API' },
+                        { id: 'deployment', label: 'Deployment' },
+                        { id: 'troubleshooting', label: 'Troubleshooting' }
+                    ],
+                    defaultSection: config.defaultSection || 'agents'
+                };
+                
+                this.currentSection = this.config.defaultSection;
+                this.assignmentInProgress = false;
+                this.messages = [];
+                
+                this.init();
+            }
+
+            init() {
+                this.renderNavigation();
+                this.loadSection(this.currentSection);
+            }
+
+            renderNavigation() {
+                const nav = document.getElementById('nav');
+                nav.innerHTML = this.config.sections.map(section => `
+                    <button 
+                        class="nav-button ${section.id === this.currentSection ? 'active' : ''}"
+                        onclick="viewer.loadSection('${section.id}')"
+                        data-section="${section.id}"
+                    >
+                        ${section.label}
+                    </button>
+                `).join('');
+            }
+
+            async loadSection(sectionId) {
+                this.currentSection = sectionId;
+                this.updateNavigation();
+                this.showLoading();
+
+                try {
+                    const response = await fetch(`${this.config.apiBase}/${sectionId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'found') {
+                        this.displayContent(data.content);
+                    } else if (data.status === 'not_found') {
+                        this.displayNotFound(sectionId);
+                    } else {
+                        this.displayError(data.message || 'Unknown error occurred');
+                    }
+                } catch (error) {
+                    console.error('Error loading documentation:', error);
+                    this.displayError(`Failed to load documentation: ${error.message}`);
+                }
+            }
+
+            updateNavigation() {
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.section === this.currentSection) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            showLoading() {
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>Loading documentation...</span>
+                    </div>
+                `;
+            }
+
+            displayContent(content) {
+                const contentDiv = document.getElementById('content');
+                
+                if (typeof content === 'string') {
+                    contentDiv.innerHTML = `<div class="content-found">${content}</div>`;
+                } else {
+                    contentDiv.innerHTML = this.renderStructuredContent(content);
+                }
+            }
+
+            renderStructuredContent(content) {
+                let html = '<div class="content-found">';
+                
+                if (content.title) {
+                    html += `<h1>${this.escapeHtml(content.title)}</h1>`;
+                }
+                
+                if (content.description) {
+                    html += `<p>${this.escapeHtml(content.description)}</p>`;
+                }
+                
+                if (content.sections) {
+                    content.sections.forEach(section => {
+                        html += `<h2>${this.escapeHtml(section.title)}</h2>`;
+                        if (section.content) {
+                            html += `<p>${this.escapeHtml(section.content)}</p>`;
+                        }
+                        if (section.code) {
+                            html += `<pre><code>${this.escapeHtml(section.code)}</code></pre>`;
+                        }
+                    });
+                }
+                
+                if (content.examples && content.examples.length > 0) {
+                    html += '<div class="examples">';
+                    html += '<h2>Examples</h2>';
+                    content.examples.forEach(example => {
+                        html += `
+                            <div class="example">
+                                <h3>${this.escapeHtml(example.title)}</h3>
+                                <pre><code>${this.escapeHtml(example.code)}</code></pre>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
+                if (content.bestPractices && content.bestPractices.length > 0) {
+                    html += '<div class="best-practices">';
+                    html += '<h2>Best Practices</h2>';
+                    html += '<ul>';
+                    content.bestPractices.forEach(practice => {
+                        html += `<li>${this.escapeHtml(practice)}</li>`;
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                }
+                
+                if (content.troubleshooting && content.troubleshooting.commonIssues) {
+                    html += '<div class="troubleshooting">';
+                    html += '<h2>Troubleshooting</h2>';
+                    content.troubleshooting.commonIssues.forEach(issue => {
+                        html += `
+                            <div class="issue">
+                                <strong>${this.escapeHtml(issue.issue)}</strong>
+                                <p>${this.escapeHtml(issue.solution)}</p>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+                return html;
+            }
+
+            displayNotFound(section) {
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `
+                    <div class="not-found">
+                        <h2>Coming soon...</h2>
+                        <p>The documentation for "${this.escapeHtml(section)}" is not yet available.</p>
+                        <p>Our AI agents are working hard to create comprehensive documentation for this section.</p>
+                        <button class="assign-button" onclick="viewer.assignAgent('${section}')" ${this.assignmentInProgress ? 'disabled' : ''}>
+                            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            ${this.assignmentInProgress ? 'Assigning...' : 'Assign AI Bot'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            displayError(message) {
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `<div class="error">Error: ${this.escapeHtml(message)}</div>`;
+            }
+
+            async assignAgent(section) {
+                if (this.assignmentInProgress) return;
+                
+                this.assignmentInProgress = true;
+                const button = document.querySelector('.assign-button');
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = `
+                        <div class="spinner"></div>
+                        Assigning...
+                    `;
+                }
+                
+                try {
+                    const response = await fetch(`${this.config.apiBase}/assign-agent`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            section: section,
+                            priority: 'medium',
+                            requirements: [
+                                'Comprehensive overview',
+                                'Code examples',
+                                'Best practices',
+                                'Troubleshooting guide'
+                            ]
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'queued') {
+                        this.showMessage(`AI agent assigned to write documentation for "${section}". Request ID: ${data.requestId}`, 'success');
+                    } else {
+                        this.showMessage(data.message || 'Failed to assign AI agent', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error assigning agent:', error);
+                    this.showMessage('Failed to assign AI agent', 'error');
+                } finally {
+                    this.assignmentInProgress = false;
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = `
+                            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            Assign AI Bot
+                        `;
+                    }
+                }
+            }
+
+            showMessage(message, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = message;
+                
+                const content = document.getElementById('content');
+                content.insertBefore(messageDiv, content.firstChild);
+                
+                // Remove message after 5 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 5000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the viewer when the page loads
+        let viewer;
+        document.addEventListener('DOMContentLoaded', () => {
+            viewer = new DocumentationViewer({
+                // You can customize the configuration here
+                apiBase: '/api/docs',
+                sections: [
+                    { id: 'agents', label: 'Agents' },
+                    { id: 'orchestration', label: 'Orchestration' },
+                    { id: 'api', label: 'API' },
+                    { id: 'deployment', label: 'Deployment' },
+                    { id: 'troubleshooting', label: 'Troubleshooting' }
+                ],
+                defaultSection: 'agents'
+            });
+        });
+
+        // Export for external use
+        window.DocumentationViewer = DocumentationViewer;
+    </script>
+</body>
+</html> 

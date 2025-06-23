@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Delivery System</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav button {
+            padding: 10px 20px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .nav button:hover {
+            background: #0056b3;
+        }
+        
+        .nav button.active {
+            background: #28a745;
+        }
+        
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .not-found {
+            text-align: center;
+            color: #666;
+        }
+        
+        .not-found h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .assign-button {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        .assign-button:hover {
+            background: #e0a800;
+        }
+        
+        .assign-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .content-found {
+            line-height: 1.6;
+        }
+        
+        .content-found h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .content-found h2 {
+            color: #555;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .content-found p {
+            margin-bottom: 15px;
+        }
+        
+        .content-found code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .content-found pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border-left: 4px solid #007bff;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Documentation Delivery System</h1>
+        <p>Dynamic documentation served from Cloudflare R2 with AI agent assignment capabilities</p>
+    </div>
+
+    <div class="nav">
+        <button onclick="loadSection('agents')" class="active">Agents</button>
+        <button onclick="loadSection('orchestration')">Orchestration</button>
+        <button onclick="loadSection('api')">API</button>
+        <button onclick="loadSection('deployment')">Deployment</button>
+        <button onclick="loadSection('troubleshooting')">Troubleshooting</button>
+    </div>
+
+    <div id="content" class="content">
+        <div class="loading">Loading...</div>
+    </div>
+
+    <script>
+        let currentSection = 'agents';
+        let assignmentInProgress = false;
+
+        // Load documentation section
+        async function loadSection(section) {
+            currentSection = section;
+            
+            // Update navigation
+            document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show loading state
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                const response = await fetch(`/api/docs/${section}`);
+                const data = await response.json();
+                
+                if (data.status === 'found') {
+                    displayContent(data.content);
+                } else if (data.status === 'not_found') {
+                    displayNotFound(section);
+                } else {
+                    displayError(data.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error loading documentation:', error);
+                displayError('Failed to load documentation');
+            }
+        }
+
+        // Display found content
+        function displayContent(content) {
+            const contentDiv = document.getElementById('content');
+            
+            if (typeof content === 'string') {
+                contentDiv.innerHTML = `<div class="content-found">${content}</div>`;
+            } else {
+                // Handle structured JSON content
+                let html = '<div class="content-found">';
+                
+                if (content.title) {
+                    html += `<h1>${content.title}</h1>`;
+                }
+                
+                if (content.description) {
+                    html += `<p>${content.description}</p>`;
+                }
+                
+                if (content.sections) {
+                    content.sections.forEach(section => {
+                        html += `<h2>${section.title}</h2>`;
+                        if (section.content) {
+                            html += `<p>${section.content}</p>`;
+                        }
+                        if (section.code) {
+                            html += `<pre><code>${section.code}</code></pre>`;
+                        }
+                    });
+                }
+                
+                if (content.examples) {
+                    html += '<h2>Examples</h2>';
+                    content.examples.forEach(example => {
+                        html += `<h3>${example.title}</h3>`;
+                        html += `<pre><code>${example.code}</code></pre>`;
+                    });
+                }
+                
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            }
+        }
+
+        // Display not found state
+        function displayNotFound(section) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `
+                <div class="not-found">
+                    <h2>Coming soon...</h2>
+                    <p>The documentation for "${section}" is not yet available.</p>
+                    <p>Our AI agents are working hard to create comprehensive documentation for this section.</p>
+                    <button class="assign-button" onclick="assignAgent('${section}')" ${assignmentInProgress ? 'disabled' : ''}>
+                        ${assignmentInProgress ? 'Assigning...' : 'Assign AI Bot'}
+                    </button>
+                </div>
+            `;
+        }
+
+        // Display error state
+        function displayError(message) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `<div class="error">Error: ${message}</div>`;
+        }
+
+        // Assign AI agent to write documentation
+        async function assignAgent(section) {
+            if (assignmentInProgress) return;
+            
+            assignmentInProgress = true;
+            const button = document.querySelector('.assign-button');
+            button.disabled = true;
+            button.textContent = 'Assigning...';
+            
+            try {
+                const response = await fetch('/api/docs/assign-agent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        section: section,
+                        priority: 'medium',
+                        requirements: [
+                            'Comprehensive overview',
+                            'Code examples',
+                            'Best practices',
+                            'Troubleshooting guide'
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'queued') {
+                    showSuccessMessage(`AI agent assigned to write documentation for "${section}". Request ID: ${data.requestId}`);
+                } else {
+                    showErrorMessage(data.message || 'Failed to assign AI agent');
+                }
+            } catch (error) {
+                console.error('Error assigning agent:', error);
+                showErrorMessage('Failed to assign AI agent');
+            } finally {
+                assignmentInProgress = false;
+                button.disabled = false;
+                button.textContent = 'Assign AI Bot';
+            }
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const contentDiv = document.getElementById('content');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            contentDiv.insertBefore(successDiv, contentDiv.firstChild);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const contentDiv = document.getElementById('content');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            contentDiv.insertBefore(errorDiv, contentDiv.firstChild);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Load initial section
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSection('agents');
+        });
+    </script>
+</body>
+</html> 

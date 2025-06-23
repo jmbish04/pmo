@@ -1,0 +1,55 @@
+name = "planner-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-15"
+
+# D1 Database for task staging and management
+[[d1_databases]]
+binding = "DB"
+database_name = "planner"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# R2 Bucket for documentation
+[[r2_buckets]]
+binding = "DOCS_BUCKET"
+bucket_name = "docs-bucket"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+CLICKUP_TOKEN = "YOUR_CLICKUP_TOKEN"
+CLICKUP_TEAM_ID = "YOUR_CLICKUP_TEAM_ID"
+
+# Production environment
+[env.production]
+name = "planner-worker-prod"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+CLICKUP_TOKEN = "YOUR_PRODUCTION_CLICKUP_TOKEN"
+CLICKUP_TEAM_ID = "YOUR_PRODUCTION_CLICKUP_TEAM_ID"
+
+# Staging environment
+[env.staging]
+name = "planner-worker-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+CLICKUP_TOKEN = "YOUR_STAGING_CLICKUP_TOKEN"
+CLICKUP_TEAM_ID = "YOUR_STAGING_CLICKUP_TEAM_ID"
+
+# Cron triggers for periodic tasks
+[triggers]
+crons = [
+  "0 */6 * * *",  # Every 6 hours (existing)
+  "0 * * * *"     # Every hour (new)
+]
+
+# Build configuration
+[build]
+command = "npm run build"
+watch_dir = "src"
+
+# Development configuration
+[dev]
+port = 8787
+# local = true
