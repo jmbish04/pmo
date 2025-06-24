@@ -68,6 +68,10 @@ export async function nextTask(req: Request, env: Env): Promise<Response> {
       query += ' AND project_id = ?';
       params.push(projectId);
     }
+    if (coderType) {
+      query += ' AND type = ?';
+      params.push(coderType);
+    }
     query += ' ORDER BY priority DESC LIMIT 1';
     const result = await env.DB.prepare(query).bind(...params).first();
     if (!result) {
