@@ -18,7 +18,7 @@ jobs:
         with:
           version: 8
 
-      - name: Debug: Show Current Directory & Lockfile
+      - name: "Debug: Show Current Directory & Lockfile"
         run: |
           pwd
           ls -lah
