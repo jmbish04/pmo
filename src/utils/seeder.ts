@@ -22,7 +22,7 @@ interface SeedTask {
 
 export async function seedFromCSV(csvText: string, env: Env): Promise<void> {
   const records = parse(csvText, { columns: true, skip_empty_lines: true });
-  const statements = [] as any[];
+  const statements: D1PreparedStatement[] = [];
   for (const rec of records) {
     const task: SeedTask = {
       id: crypto.randomUUID(),
