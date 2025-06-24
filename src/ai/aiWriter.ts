@@ -37,7 +37,7 @@ export async function writeAgentFile({
   file: string;
   goal: string;
   details?: string[];
-  env: any;
+  env: { R2: R2Bucket };
 }): Promise<{
   success: boolean;
   fileKey: string;
