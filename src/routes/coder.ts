@@ -38,20 +38,12 @@ export async function completeTask(req: Request, env: Env): Promise<Response> {
 export async function reportError(req: Request, env: Env): Promise<Response> {
   const body: CoderRequest = await req.json();
   try {
-
-    const errorSuffix = body.error ? `\n\nError: ${body.error}` : '';
-
-
     if (!body.error) {
       return Response.json({ success: false, error: 'The "error" field is required.' }, { status: 400 });
     }
-
-
-    const errorSuffix = body.error ? `\n\nError: ${body.error}` : '';
-
-
+    const errorSuffix = `\n\nError: ${body.error}`;
     await env.DB.prepare(
-      "UPDATE tasks SET status = ?, description = coalesce(description, '') || ? WHERE id = ?"
+      'UPDATE tasks SET status = ?, description = coalesce(description, \'\') || ? WHERE id = ?'
     ).bind('error', errorSuffix, body.taskId).run();
     logger.info('Coder reported error', { coderId: body.coderId, taskId: body.taskId });
     return Response.json({ success: true });
@@ -65,24 +57,24 @@ export async function nextTask(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const coderType = url.searchParams.get('coderType') || 'codex';
   const projectId = url.searchParams.get('projectId');
+
   try {
     let query = 'SELECT * FROM tasks WHERE status = ?';
     const params: any[] = ['to do'];
+
     if (projectId) {
       query += ' AND project_id = ?';
       params.push(projectId);
     }
 
-    if (coderType) {
-      query += ' AND type = ?';
-      params.push(coderType);
-    }
-
+    // Could filter by coderType if task type column exists later
     query += ' ORDER BY priority DESC LIMIT 1';
+
     const result = await env.DB.prepare(query).bind(...params).first();
     if (!result) {
       return Response.json({ task: null });
     }
+
     logger.info('Next task fetched', { coderType, projectId, taskId: result.id });
     return Response.json({ task: result });
   } catch (err) {

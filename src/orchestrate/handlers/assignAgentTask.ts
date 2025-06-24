@@ -5,6 +5,7 @@
  * AI agent task files in R2 storage.
  */
 
+
 import { writeAgentFile, AgentTask, AgentFileMetadata } from '../../ai/aiWriter';
 import { logger } from '../../utils/logger';
 
@@ -107,7 +108,7 @@ export async function handleAssignAgentTask(
       data: {
         fileKey: result.fileKey,
         presignedUrl: result.presignedUrl,
-        metadata: result.metadata
+        metadata: result.metadata as AgentTask
       }
     };
 
