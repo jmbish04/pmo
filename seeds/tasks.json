@@ -1,0 +1,37 @@
+[
+  {
+    "id": "task-1",
+    "name": "Create coders D1 table",
+    "description": "Design and deploy the coders table with fields for id, type, name, assigned_project_id, and config.",
+    "status": "to do",
+    "priority": "High"
+  },
+  {
+    "id": "task-2",
+    "name": "Add coder selection to project initializer",
+    "description": "Update the project creation flow to support selecting a coder type (codex, cursor, cline, human).",
+    "status": "to do",
+    "priority": "High"
+  },
+  {
+    "id": "task-3",
+    "name": "Generate configuration templates",
+    "description": "Create config templates and examples for each coder type. Output appropriate file during project initialization.",
+    "status": "to do",
+    "priority": "High"
+  },
+  {
+    "id": "task-4",
+    "name": "Create helper for postTaskUpdate",
+    "description": "Export reusable helper function for updating task status. Include example usage for coders.",
+    "status": "to do",
+    "priority": "High"
+  },
+  {
+    "id": "task-5",
+    "name": "Build coder routing endpoints",
+    "description": "Create /api/coder/start-task, /complete-task, and /report-error endpoints for task state transitions.",
+    "status": "to do",
+    "priority": "High"
+  }
+]
