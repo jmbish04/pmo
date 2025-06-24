@@ -45,13 +45,12 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3.55.0" # optional pin
-          command: deploy --env production
+          wranglerVersion: "3.55.0"
+          command: cd pmo && wrangler deploy --env production
           secrets: |
             WEBHOOK_TOKEN
         env:
           WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
-        working-directory: ./pmo
 
       - name: Print Deployment URL
         run: echo "🚀 Deployed to ${{ steps.deploy.outputs.deployment-url }}"
