@@ -7,6 +7,7 @@
     "deploy": "cd ../worker && pnpm install && pnpm run build && cd ../frontend && pnpm install && pnpm run build && cd ../backend && pnpm install && pnpm run migrate:local && pnpm run migrate:remote && wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
+    "build": "tsc",
     "migrate:local": "wrangler d1 migrations apply DB --local",
     "migrate:remote": "wrangler d1 migrations apply DB --remote"
   },
@@ -20,6 +21,7 @@
     "@types/node": "^22.5.4",
     "axios": "^1.10.0",
     "body-parser": "^1.20.3",
+    "csv-parse": "^5.6.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "express-session": "^1.18.0",
