@@ -80,6 +80,7 @@ A Cloudflare Workers-based system for intelligent task management and orchestrat
 - `GET /api/next-task?coderType=codex&projectId=optional` - Fetch the next available task
 - `POST /api/v1/ingest` - Record usage data from coders
 
+
 ### Seeding
 - `POST /api/seed-tasks` - Seed tasks from CSV or JSON payload
 
@@ -523,7 +524,7 @@ Task description goes here...
 
 **Assign Agent Task**
 ```bash
-curl -X POST https://your-worker.your-subdomain.workers.dev/orchestrate/assign-agent-task \
+curl -X POST https://pmo-hq.workers.dev/orchestrate/assign-agent-task \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Write documentation for SyncAgent",

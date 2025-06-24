@@ -38,7 +38,18 @@ export async function completeTask(req: Request, env: Env): Promise<Response> {
 export async function reportError(req: Request, env: Env): Promise<Response> {
   const body: CoderRequest = await req.json();
   try {
+
     const errorSuffix = body.error ? `\n\nError: ${body.error}` : '';
+
+
+    if (!body.error) {
+      return Response.json({ success: false, error: 'The "error" field is required.' }, { status: 400 });
+    }
+
+
+    const errorSuffix = body.error ? `\n\nError: ${body.error}` : '';
+
+
     await env.DB.prepare(
       "UPDATE tasks SET status = ?, description = coalesce(description, '') || ? WHERE id = ?"
     ).bind('error', errorSuffix, body.taskId).run();
@@ -61,6 +72,12 @@ export async function nextTask(req: Request, env: Env): Promise<Response> {
       query += ' AND project_id = ?';
       params.push(projectId);
     }
+
+    if (coderType) {
+      query += ' AND type = ?';
+      params.push(coderType);
+    }
+
     query += ' ORDER BY priority DESC LIMIT 1';
     const result = await env.DB.prepare(query).bind(...params).first();
     if (!result) {
