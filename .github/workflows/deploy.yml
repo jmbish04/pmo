@@ -9,27 +9,32 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Cloudflare Worker
 
-    steps:
+    steps:  # 🛠️ Add this line to start the steps block
+
       - uses: actions/checkout@v4
+        with:
+          path: .
 
       - uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: Debug:Show Current Directory & Lockfile
+      - name: Debug: Show Current Directory & Lockfile
         run: |
           pwd
-          ls -lah          
+          ls -lah
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: ./  # update if not root
+        working-directory: ./pmo
 
       - name: Build
         run: pnpm run build
+        working-directory: ./pmo
 
       - name: Run Migrations
         run: pnpm run migrate:all
+        working-directory: ./pmo
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -46,6 +51,7 @@ jobs:
             WEBHOOK_TOKEN
         env:
           WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+        working-directory: ./pmo
 
       - name: Print Deployment URL
         run: echo "🚀 Deployed to ${{ steps.deploy.outputs.deployment-url }}"
