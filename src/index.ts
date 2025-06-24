@@ -21,8 +21,16 @@ import { handleNewTask } from './handlers/newTask';
 import { Orchestrator } from './orchestrate/Orchestrator';
 import { handleAssignAgentTask, handleAssignAgentTaskOptions } from './orchestrate/handlers/assignAgentTask';
 import { handleDocsRequest, handleAssignAgent } from './docs/handler';
-import { startTask as coderStartTask, completeTask, reportError, nextTask } from './routes/coder';
+import { handleCoderRoutes } from './routes/coder';
 import { ensureTables, seedFromCSV, seedFromJSON } from './utils/seeder';
+
+let tablesReady: Promise<void> | null = null;
+function initTables(env: Env): Promise<void> {
+  if (!tablesReady) {
+    tablesReady = ensureTables(env);
+  }
+  return tablesReady;
+}
 // import { exchangeClickUpCodeForToken, storeToken, logTransaction, analyzeTaskChange, addNote, upsertTask, searchReusableFeatures, checkUnitTestingInNotes, reopenOrCreateSubtask, checkPriorTasksCompletion } from './utils';
 
 // Cloudflare Worker types
@@ -115,6 +123,8 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    await initTables(env);
+
     try {
       // Health check endpoint
       if (path === '/health') {
@@ -142,26 +152,12 @@ export default {
         return handleNewTask(request, env);
       }
 
-      // Coder routing endpoints
-      if (path === '/api/coder/start-task' && request.method === 'POST') {
-        await ensureTables(env);
-        return coderStartTask(request, env);
-      }
-      if (path === '/api/coder/complete-task' && request.method === 'POST') {
-        await ensureTables(env);
-        return completeTask(request, env);
-      }
-      if (path === '/api/coder/report-error' && request.method === 'POST') {
-        await ensureTables(env);
-        return reportError(request, env);
-      }
-      if (path === '/api/next-task' && request.method === 'GET') {
-        await ensureTables(env);
-        return nextTask(request, env);
+      const coderResponse = await handleCoderRoutes(request, env);
+      if (coderResponse) {
+        return coderResponse;
       }
 
       if (path === '/api/seed-tasks' && request.method === 'POST') {
-        await ensureTables(env);
         const contentType = request.headers.get('Content-Type') || '';
         const text = await request.text();
         if (contentType.includes('application/json')) {

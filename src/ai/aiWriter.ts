@@ -20,6 +20,12 @@ export interface AgentTask {
   metadata?: Record<string, any>;
 }
 
+export interface AgentFileMetadata {
+  title: string;
+  goal: string;
+  details: string[];
+}
+
 export async function writeAgentFile({
   title,
   file,
@@ -36,7 +42,7 @@ export async function writeAgentFile({
   success: boolean;
   fileKey: string;
   presignedUrl?: string;
-  metadata: Record<string, any>;
+  metadata: AgentFileMetadata;
   error?: string;
 }> {
   try {
