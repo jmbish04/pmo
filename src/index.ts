@@ -19,8 +19,19 @@ import { handleWebhook } from './clickup/webhook';
 import { logger, toError } from './utils/logger';
 import { handleNewTask } from './handlers/newTask';
 import { Orchestrator } from './orchestrate/Orchestrator';
-import { handleAssignAgentTask, handleAssignAgentTaskOptions } from './handlers/assignAgentTask';
+import { handleAssignAgentTask, handleAssignAgentTaskOptions } from './orchestrate/handlers/assignAgentTask';
 import { handleDocsRequest, handleAssignAgent } from './docs/handler';
+import { handleCoderRoutes } from './routes/coder';
+import { ingest } from './routes/ingest';
+import { ensureTables, seedFromCSV, seedFromJSON } from './utils/seeder';
+
+let tablesReady: Promise<void> | null = null;
+function initTables(env: Env): Promise<void> {
+  if (!tablesReady) {
+    tablesReady = ensureTables(env);
+  }
+  return tablesReady;
+}
 // import { exchangeClickUpCodeForToken, storeToken, logTransaction, analyzeTaskChange, addNote, upsertTask, searchReusableFeatures, checkUnitTestingInNotes, reopenOrCreateSubtask, checkPriorTasksCompletion } from './utils';
 
 // Cloudflare Worker types
@@ -113,6 +124,8 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    await initTables(env);
+
     try {
       // Health check endpoint
       if (path === '/health') {
@@ -138,6 +151,26 @@ export default {
       // Task management routes
       if (path === '/tasks/new' && request.method === 'POST') {
         return handleNewTask(request, env);
+      }
+
+      const coderResponse = await handleCoderRoutes(request, env);
+      if (coderResponse) {
+        return coderResponse;
+      }
+
+      if (path === '/api/v1/ingest' && request.method === 'POST') {
+        return ingest(request, env);
+      }
+
+      if (path === '/api/seed-tasks' && request.method === 'POST') {
+        const contentType = request.headers.get('Content-Type') || '';
+        const text = await request.text();
+        if (contentType.includes('application/json')) {
+          await seedFromJSON(text, env);
+        } else {
+          await seedFromCSV(text, env);
+        }
+        return Response.json({ seeded: true });
       }
 
       // ClickUp webhook routes

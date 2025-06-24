@@ -1,1 +1,10 @@
-/.DS_Storenode_modules/
+/.DS_Store
+node_modules/
+dist/
+.dev.vars
+*.env
+*.local
+*.log
+temp/
+*.tmp
+

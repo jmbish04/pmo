@@ -1,0 +1,6 @@
+Task Name,Description,Status,Priority
+Create `coders` D1 table,"Design and deploy the `coders` table with fields for id, type, name, assigned_project_id, and config.",to do,High
+Add coder selection to project initializer,"Update the project creation flow to support selecting a coder type (codex, cursor, cline, human).",to do,High
+"Generate `.clinerules`, `cursor.config.json`, or Codex bindings",Create config templates and examples for each coder type. Output appropriate file during project initialization.,to do,High
+Create helper file for `postTaskUpdate()`,Export reusable helper function for updating task status. Include example usage for coders.,to do,High
+Build coder routing endpoints,"Create `/api/coder/start-task`, `/complete-task`, and `/report-error` endpoints for task state transitions.",to do,High
