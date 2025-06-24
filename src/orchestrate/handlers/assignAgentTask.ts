@@ -107,7 +107,7 @@ export async function handleAssignAgentTask(
       data: {
         fileKey: result.fileKey,
         presignedUrl: result.presignedUrl,
-        metadata: result.metadata as any
+        metadata: result.metadata as AgentTask
       }
     };
 
