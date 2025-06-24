@@ -38,7 +38,10 @@ export async function completeTask(req: Request, env: Env): Promise<Response> {
 export async function reportError(req: Request, env: Env): Promise<Response> {
   const body: CoderRequest = await req.json();
   try {
-    const errorSuffix = body.error ? `\n\nError: ${body.error}` : '';
+    if (!body.error) {
+      return Response.json({ success: false, error: 'The "error" field is required.' }, { status: 400 });
+    }
+    const errorSuffix = `\n\nError: ${body.error}`;
     await env.DB.prepare(
       "UPDATE tasks SET status = ?, description = coalesce(description, '') || ? WHERE id = ?"
     ).bind('error', errorSuffix, body.taskId).run();
