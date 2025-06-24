@@ -1,11 +1,12 @@
-name = "planner-worker"
+name = "pmo-hq"
 main = "src/index.ts"
 compatibility_date = "2024-06-15"
+ai = true
 
 # D1 Database for task staging and management
 [[d1_databases]]
 binding = "DB"
-database_name = "planner"
+database_name = "pmo-hq-dev"
 database_id = "YOUR_D1_DATABASE_ID"
 
 # R2 Bucket for documentation
@@ -16,26 +17,37 @@ bucket_name = "docs-bucket"
 # Environment variables
 [vars]
 ENVIRONMENT = "development"
-CLICKUP_TOKEN = "YOUR_CLICKUP_TOKEN"
-CLICKUP_TEAM_ID = "YOUR_CLICKUP_TEAM_ID"
+
 
 # Production environment
 [env.production]
-name = "planner-worker-prod"
+name = "pmo-hq"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "pmo-hq"
+database_id = "YOUR_PRODUCTION_DB_ID"
+
+[env.production.ai_gateway]
+url = "${AI_GATEWAY_URL_PROD}"
 
 [env.production.vars]
 ENVIRONMENT = "production"
-CLICKUP_TOKEN = "YOUR_PRODUCTION_CLICKUP_TOKEN"
-CLICKUP_TEAM_ID = "YOUR_PRODUCTION_CLICKUP_TEAM_ID"
 
 # Staging environment
 [env.staging]
-name = "planner-worker-staging"
+name = "pmo-hq-staging"
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
-CLICKUP_TOKEN = "YOUR_STAGING_CLICKUP_TOKEN"
-CLICKUP_TEAM_ID = "YOUR_STAGING_CLICKUP_TEAM_ID"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "pmo-hq-staging"
+database_id = "YOUR_STAGING_DB_ID"
+
+[env.staging.ai_gateway]
+url = "${AI_GATEWAY_URL_STAGING}"
 
 # Cron triggers for periodic tasks
 [triggers]
@@ -46,10 +58,12 @@ crons = [
 
 # Build configuration
 [build]
-command = "npm run build"
+command = "pnpm run build"
 watch_dir = "src"
 
 # Development configuration
 [dev]
 port = 8787
-# local = true
+
+[ai_gateway]
+url = "${AI_GATEWAY_URL}"

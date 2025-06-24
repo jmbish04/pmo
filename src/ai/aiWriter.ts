@@ -20,6 +20,12 @@ export interface AgentTask {
   metadata?: Record<string, any>;
 }
 
+export interface AgentFileMetadata {
+  title: string;
+  goal: string;
+  details: string[];
+}
+
 export async function writeAgentFile({
   title,
   file,
@@ -31,12 +37,14 @@ export async function writeAgentFile({
   file: string;
   goal: string;
   details?: string[];
-  env: any;
+
+  env: { R2: R2Bucket };
+
 }): Promise<{
   success: boolean;
   fileKey: string;
   presignedUrl?: string;
-  metadata: Record<string, any>;
+  metadata: AgentFileMetadata;
   error?: string;
 }> {
   try {

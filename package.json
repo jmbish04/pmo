@@ -4,12 +4,13 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "deploy": "cd ../worker && pnpm install && pnpm run build && cd ../frontend && pnpm install && pnpm run build && cd ../backend && pnpm install && pnpm run migrate:local && pnpm run migrate:remote && wrangler deploy",
+    "deploy": "pnpm run build && pnpm run migrate:all && wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "build": "tsc",
     "migrate:local": "wrangler d1 migrations apply DB --local",
-    "migrate:remote": "wrangler d1 migrations apply DB --remote"
+    "migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "migrate:all": "pnpm run migrate:local && pnpm run migrate:remote"
   },
   "keywords": [],
   "author": "",

@@ -73,6 +73,17 @@ A Cloudflare Workers-based system for intelligent task management and orchestrat
 - `GET /api/docs/:section` - Retrieve documentation by section
 - `POST /api/docs/assign-agent` - Queue AI bot assignment for documentation
 
+### Coder API
+- `POST /api/coder/start-task` - Mark a task as started by a coder
+- `POST /api/coder/complete-task` - Mark a task as completed
+- `POST /api/coder/report-error` - Report an error during task execution
+- `GET /api/next-task?coderType=codex&projectId=optional` - Fetch the next available task
+- `POST /api/v1/ingest` - Record usage data from coders
+
+
+### Seeding
+- `POST /api/seed-tasks` - Seed tasks from CSV or JSON payload
+
 ## 🤖 Agent System
 
 ### Available Agents
@@ -206,7 +217,7 @@ A Cloudflare Workers-based system for intelligent task management and orchestrat
 ```bash
 git clone <repository>
 cd wehbook-your-free-hooker
-npm install
+pnpm install
 ```
 
 2. **Configure environment variables**:
@@ -221,14 +232,26 @@ CLICKUP_TEAM_ID = "your_team_id"
 # Create D1 database
 wrangler d1 create planner
 
+# Create staging and production databases
+wrangler d1 create pmo-hq-staging
+wrangler d1 create pmo-hq
+
 # Apply migrations
 wrangler d1 execute planner --file=./migrations/001_init.sql
 wrangler d1 execute planner --file=./migrations/002_extend_schema.sql
+wrangler d1 execute planner --file=./migrations/003_ingest.sql
 ```
 
 4. **Deploy to Cloudflare**:
 ```bash
 wrangler deploy
+```
+
+### Secrets
+Set sensitive values with Wrangler:
+```bash
+wrangler secret put CLICKUP_TOKEN
+wrangler secret put CLICKUP_TEAM_ID
 ```
 
 ## 🧪 Testing
@@ -352,6 +375,9 @@ wrangler deploy --env staging
 wrangler deploy --env production
 ```
 
+### Continuous Deployment
+This project includes a GitHub Actions workflow that automatically deploys to Cloudflare Workers when changes land on the `main` branch. The workflow runs migrations and `pnpm build` before calling `wrangler deploy`.
+
 ## 📈 Performance
 
 - **Batch Processing**: Efficient task processing in batches
@@ -363,13 +389,15 @@ wrangler deploy --env production
 ## 🔧 Configuration
 
 ### Environment Variables
-- `CLICKUP_TOKEN`: ClickUp API access token
-- `CLICKUP_TEAM_ID`: ClickUp team identifier
+- `CLICKUP_TOKEN`: ClickUp API access token (**set as a secret**)
+- `CLICKUP_TEAM_ID`: ClickUp team identifier (**set as a secret**)
 - `ENVIRONMENT`: Deployment environment (development/staging/production)
 
 ### Worker Bindings
 - `DB`: D1 database for data storage
 - `DOCS_BUCKET`: R2 bucket for documentation
+- `AI`: Workers AI binding
+- `AI_GATEWAY_URL`: URL for the AI Gateway
 
 ## 📝 Development
 
@@ -496,7 +524,7 @@ Task description goes here...
 
 **Assign Agent Task**
 ```bash
-curl -X POST https://your-worker.your-subdomain.workers.dev/orchestrate/assign-agent-task \
+curl -X POST https://pmo-hq.workers.dev/orchestrate/assign-agent-task \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Write documentation for SyncAgent",

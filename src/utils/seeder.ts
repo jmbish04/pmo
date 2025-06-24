@@ -1,7 +1,8 @@
 import { parse } from 'csv-parse/sync';
 import { logger } from './logger';
+import type { Env } from '../types';
 
-export async function ensureTables(env: any): Promise<void> {
+export async function ensureTables(env: Env): Promise<void> {
   await env.DB.prepare(`
     CREATE TABLE IF NOT EXISTS coders (
       id TEXT PRIMARY KEY,
@@ -22,10 +23,19 @@ export async function ensureTables(env: any): Promise<void> {
       project_id TEXT
     )
   `).run();
+
+  await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS usage_data (
+      id TEXT PRIMARY KEY,
+      coder_id TEXT,
+      payload TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
 }
 
 interface SeedTask {
-  id: string;
+  id?: string;
   name: string;
   description: string;
   status: string;
@@ -33,7 +43,7 @@ interface SeedTask {
   project_id?: string | null;
 }
 
-export async function seedFromCSV(csvText: string, env: any): Promise<void> {
+export async function seedFromCSV(csvText: string, env: Env): Promise<void> {
   const records = parse(csvText, { columns: true, skip_empty_lines: true });
 
   const tasks: SeedTask[] = records.map((rec: any) => ({
@@ -42,34 +52,41 @@ export async function seedFromCSV(csvText: string, env: any): Promise<void> {
     description: rec['Description'] || '',
     status: rec['Status'] || 'to do',
     priority: rec['Priority'] || 'Medium',
-    project_id: rec['Project ID'] || null
+    project_id: rec['Project ID'] || null,
   }));
 
-  const statements = tasks.map(task =>
-    env.DB.prepare(
-      `INSERT INTO tasks (id, name, description, status, priority, project_id)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    ).bind(task.id, task.name, task.description, task.status, task.priority, task.project_id)
+  const statements = tasks.map((task) =>
+    env.DB.prepare(`
+      INSERT INTO tasks (id, name, description, status, priority, project_id)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      task.id,
+      task.name,
+      task.description,
+      task.status,
+      task.priority,
+      task.project_id
+    )
   );
 
   await env.DB.batch(statements);
   logger.info('Seeded tasks from CSV', { count: tasks.length });
 }
 
-export async function seedFromJSON(jsonText: string, env: any): Promise<void> {
+export async function seedFromJSON(jsonText: string, env: Env): Promise<void> {
   const tasks: SeedTask[] = JSON.parse(jsonText);
 
-  const statements = tasks.map(task =>
-    env.DB.prepare(
-      `INSERT INTO tasks (id, name, description, status, priority, project_id)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    ).bind(
+  const statements = tasks.map((task) =>
+    env.DB.prepare(`
+      INSERT INTO tasks (id, name, description, status, priority, project_id)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
       task.id || crypto.randomUUID(),
       task.name,
       task.description,
       task.status,
       task.priority,
-      task.project_id || null
+      task.project_id ?? null
     )
   );
 
