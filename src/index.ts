@@ -25,12 +25,12 @@ import { handleCoderRoutes } from './routes/coder';
 import { ingest } from './routes/ingest';
 import { ensureTables, seedFromCSV, seedFromJSON } from './utils/seeder';
 
-let tablesReady: Promise<void> | null = null;
+let tablesInitializationPromise: Promise<void> | null = null;
 function initTables(env: Env): Promise<void> {
-  if (!tablesReady) {
-    tablesReady = ensureTables(env);
+  if (!tablesInitializationPromise) {
+    tablesInitializationPromise = ensureTables(env);
   }
-  return tablesReady;
+  return tablesInitializationPromise;
 }
 // import { exchangeClickUpCodeForToken, storeToken, logTransaction, analyzeTaskChange, addNote, upsertTask, searchReusableFeatures, checkUnitTestingInNotes, reopenOrCreateSubtask, checkPriorTasksCompletion } from './utils';
 
