@@ -20,7 +20,10 @@ interface SeedTask {
 
 export async function seedFromCSV(csvText: string, env: any): Promise<void> {
   const records = parse(csvText, { columns: true, skip_empty_lines: true });
-  for (const rec of records) {
+  const stmt = env.DB.prepare(
+    'INSERT INTO tasks (id, name, description, status, priority) VALUES (?, ?, ?, ?, ?)'
+  );
+  const bindings = records.map(rec => {
     const task: SeedTask = {
       id: crypto.randomUUID(),
       name: rec['Task Name'] || rec.name,
@@ -28,9 +31,11 @@ export async function seedFromCSV(csvText: string, env: any): Promise<void> {
       status: rec['Status'] || 'to do',
       priority: rec['Priority'] || 'Medium'
     };
-    await env.DB.prepare(
-      'INSERT INTO tasks (id, name, description, status, priority) VALUES (?, ?, ?, ?, ?)'
-    ).bind(task.id, task.name, task.description, task.status, task.priority).run();
+    return stmt.bind(task.id, task.name, task.description, task.status, task.priority);
+  });
+
+  if (bindings.length > 0) {
+    await env.DB.batch(bindings);
   }
   logger.info('Seeded tasks from CSV', { count: records.length });
 }
