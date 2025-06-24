@@ -9,32 +9,28 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Cloudflare Worker
 
-    steps:  # 🛠️ Add this line to start the steps block
-
+    steps:
       - uses: actions/checkout@v4
         with:
-          path: .
+          path: .  # Ensures files go directly into /home/runner/work/pmo/pmo
 
       - uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: "Debug: Show Current Directory & Lockfile"
+      - name: Debug: Show Current Directory & Lockfile
         run: |
           pwd
           ls -lah
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: ./pmo
 
       - name: Build
         run: pnpm run build
-        working-directory: ./pmo
 
       - name: Run Migrations
         run: pnpm run migrate:all
-        working-directory: ./pmo
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -45,8 +41,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3.55.0"
-          command: cd pmo && wrangler deploy --env production
+          wranglerVersion: "3.55.0" # optional pin
+          command: wrangler deploy --env production
           secrets: |
             WEBHOOK_TOKEN
         env:
