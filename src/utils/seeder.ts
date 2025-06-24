@@ -28,13 +28,10 @@ export async function seedFromCSV(csvText: string, env: Env): Promise<void> {
   const statements = [] as any[];
   for (const rec of records) {
     const task: SeedTask = {
-      id: crypto.randomUUID(),
-      name: rec['Task Name'] || rec.name,
-      description: rec['Description'] || '',
-      status: rec['Status'] || 'to do',
-      priority: rec['Priority'] || 'Medium',
-      project_id: rec['Project ID'] || null
-    };
+name: rec['Task Name'] ?? rec.name,
+description: rec['Description'] ?? '',
+status: rec['Status'] ?? 'to do',
+priority: rec['Priority'] ?? 'Medium',
     statements.push(
       env.DB.prepare(
         'INSERT INTO tasks (id, name, description, status, priority, project_id) VALUES (?, ?, ?, ?, ?, ?)'
