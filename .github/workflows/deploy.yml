@@ -20,11 +20,11 @@ jobs:
 
       - name: 🔍 Debug Info
         run: |
-          echo "--- 📂 Current Directory ---"
+          echo "--- 📂 Working Directory ---"
           pwd
-          echo "--- 📄 Files in Root ---"
+          echo "--- 📄 Files in Directory ---"
           ls -lah
-          echo "--- 📄 Contents of pnpm-lock.yaml ---"
+          echo "--- 📄 Lockfile Content ---"
           cat pnpm-lock.yaml || echo "⚠️ pnpm-lock.yaml not found"
 
       - name: Install Dependencies
