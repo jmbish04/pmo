@@ -73,6 +73,15 @@ A Cloudflare Workers-based system for intelligent task management and orchestrat
 - `GET /api/docs/:section` - Retrieve documentation by section
 - `POST /api/docs/assign-agent` - Queue AI bot assignment for documentation
 
+### Coder API
+- `POST /api/coder/start-task` - Mark a task as started by a coder
+- `POST /api/coder/complete-task` - Mark a task as completed
+- `POST /api/coder/report-error` - Report an error during task execution
+- `GET /api/next-task?coderType=codex&projectId=optional` - Fetch the next available task
+
+### Seeding
+- `POST /api/seed-tasks` - Seed tasks from CSV or JSON payload
+
 ## 🤖 Agent System
 
 ### Available Agents
