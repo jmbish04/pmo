@@ -5,8 +5,8 @@
  * AI agent task files in R2 storage.
  */
 
-import { writeAgentFile, AgentTask } from '../ai/aiWriter';
-import { logger } from '../utils/logger';
+import { writeAgentFile, AgentTask, AgentFileMetadata } from '../../ai/aiWriter';
+import { logger } from '../../utils/logger';
 
 export interface AssignAgentTaskRequest {
   title: string;
@@ -25,7 +25,7 @@ export interface AssignAgentTaskResponse {
   data?: {
     fileKey: string;
     presignedUrl?: string;
-    metadata: AgentTask & { id?: string; fileKey?: string; createdAt?: string };
+    metadata: AgentFileMetadata & { id?: string; fileKey?: string; createdAt?: string };
   };
   error?: string;
 }
@@ -68,7 +68,13 @@ export async function handleAssignAgentTask(
     });
 
     // Create agent task
-    const result = await writeAgentFile(body, env);
+    const result = await writeAgentFile({
+      title: body.title,
+      file: body.relatedFile || 'task.md',
+      goal: body.description,
+      details: body.tags || [],
+      env
+    });
 
     if (!result.success) {
       return new Response(
