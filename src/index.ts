@@ -160,12 +160,19 @@ export default {
       if (path === '/api/seed-tasks' && request.method === 'POST') {
         const contentType = request.headers.get('Content-Type') || '';
         const text = await request.text();
-        if (contentType.includes('application/json')) {
-          await seedFromJSON(text, env);
-        } else {
-          await seedFromCSV(text, env);
+        try {
+          if (contentType.includes('application/json')) {
+            await seedFromJSON(text, env);
+          } else if (contentType.includes('text/csv')) {
+            await seedFromCSV(text, env);
+          } else {
+            return new Response('Unsupported Content-Type for seeding. Use application/json or text/csv.', { status: 415 });
+          }
+          return Response.json({ seeded: true });
+        } catch (err) {
+          logger.error('Seeding failed', err instanceof Error ? err : new Error(String(err)));
+          return Response.json({ seeded: false, error: 'Failed to parse or process seed data.' }, { status: 400 });
         }
-        return Response.json({ seeded: true });
       }
 
       // ClickUp webhook routes
