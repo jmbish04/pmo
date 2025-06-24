@@ -3,16 +3,19 @@ main = "src/index.ts"
 compatibility_date = "2024-06-15"
 ai = true
 
+[ai]
+binding = "AI"
+
 # D1 Database for task staging and management
 [[d1_databases]]
 binding = "DB"
-database_name = "pmo-hq-dev"
-database_id = "YOUR_D1_DATABASE_ID"
+database_name = "pmo-hq-v1"
+database_id = "fd22a6b8-413c-4799-9965-20510bc21b2c"
 
 # R2 Bucket for documentation
 [[r2_buckets]]
 binding = "DOCS_BUCKET"
-bucket_name = "docs-bucket"
+bucket_name = "docs-content"
 
 # Environment variables
 [vars]
@@ -43,8 +46,8 @@ ENVIRONMENT = "staging"
 
 [[env.staging.d1_databases]]
 binding = "DB"
-database_name = "pmo-hq-staging"
-database_id = "YOUR_STAGING_DB_ID"
+database_name = "pmo-hq-v1-staging"
+database_id = "a0c2ab15-294b-4285-9363-db09829f6440"
 
 [env.staging.ai_gateway]
 url = "${AI_GATEWAY_URL_STAGING}"
