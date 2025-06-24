@@ -10,23 +10,27 @@ jobs:
     name: Deploy Cloudflare Worker
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          path: .  # Ensures files go directly into /home/runner/work/pmo/pmo
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: "Debug: Show Current Directory & Lockfile"
+      - name: 🔍 Debug Info
         run: |
+          echo "--- 📂 Current Directory ---"
           pwd
+          echo "--- 📄 Files in Root ---"
           ls -lah
+          echo "--- 📄 Contents of pnpm-lock.yaml ---"
+          cat pnpm-lock.yaml || echo "⚠️ pnpm-lock.yaml not found"
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: Build Project
         run: pnpm run build
 
       - name: Run Migrations
@@ -41,8 +45,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3.55.0" # optional pin
-          command: wrangler deploy --env production
+          wranglerVersion: "3.55.0"
+          command: deploy --env production
           secrets: |
             WEBHOOK_TOKEN
         env:
