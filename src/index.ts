@@ -1,27 +1,26 @@
 /**
  * Cloudflare Workers Entry Point
  * 
- * This is the main entry point for the ClickUp Planner Worker.
- * Handles incoming requests and routes them to appropriate handlers.
- * 
- * Features:
- * - Webhook handling for ClickUp events
- * - API endpoints for orchestration
- * - Health checks and monitoring
- * - CORS handling for cross-origin requests
- * - Documentation delivery system
+ * Handles:
+ * - ClickUp Webhooks
+ * - Task orchestration
+ * - Coder task lifecycle
+ * - Documentation agent interaction
+ * - Seeding and ingestion
+ * - Cron-based task sync
  */
 
 import { validateEnv } from "./utils/validateEnv";
-import { Orchestrate } from './orchestrate/Orchestrate';
-import { handleWebhook } from './clickup/webhook';
 import { logger, toError } from './utils/logger';
+import { ensureTables, seedFromCSV, seedFromJSON } from './utils/seeder';
+import { handleWebhook as handleClickUpWebhook } from './clickup/webhook';
 import { handleNewTask } from './handlers/newTask';
-import { Orchestrator } from './orchestrate/Orchestrator';
 import { handleAssignAgentTask, handleAssignAgentTaskOptions } from './orchestrate/handlers/assignAgentTask';
 import { handleDocsRequest, handleAssignAgent } from './docs/handler';
 import { handleCoderRoutes } from './routes/coder';
-import { ensureTables, seedFromCSV, seedFromJSON } from './utils/seeder';
+import { Orchestrator } from './orchestrate/Orchestrator';
+import { ingest } from './routes/ingest';
+import { handlePeriodicSync, handleHourlySync, handleSync } from './sync';
 
 let tablesReady: Promise<void> | null = null;
 function initTables(env: Env): Promise<void> {
@@ -29,70 +28,6 @@ function initTables(env: Env): Promise<void> {
     tablesReady = ensureTables(env);
   }
   return tablesReady;
-}
-
-interface D1Database {
-  prepare: (query: string) => any;
-  batch: (statements: any[]) => Promise<any>;
-  exec: (query: string) => Promise<any>;
-}
-
-interface KVNamespace {
-  get: (key: string) => Promise<string | null>;
-  put: (key: string, value: string) => Promise<void>;
-  delete: (key: string) => Promise<void>;
-  list: (options?: any) => Promise<any>;
-}
-
-interface R2Bucket {
-  get: (key: string) => Promise<any>;
-  put: (key: string, value: any, options?: any) => Promise<any>;
-  delete: (key: string) => Promise<any>;
-  list: (options?: any) => Promise<any>;
-  createMultipartUpload: (key: string) => Promise<any>;
-}
-
-interface EnrichRequestBody {
-  taskId?: string;
-  taskData?: any;
-}
-
-interface ReviewStagedTasksBody {
-  batchSize?: number;
-  priority?: string;
-}
-
-interface SyncRequestBody {
-  source?: string;
-  fullSync?: boolean;
-}
-
-interface OrchestrationRequest {
-  flowName: string;
-  action: string;
-  data: Record<string, any>;
-  config?: Record<string, any>;
-  metadata?: Record<string, any>;
-}
-
-interface ScheduledEvent {
-  cron: string;
-  scheduledTime: number;
-  type: string;
-}
-
-export interface Env {
-  DB: D1Database;
-  KV: KVNamespace;
-  AI: any;
-  CLICKUP_API_KEY: string;
-  DALL_E_ENDPOINT: string;
-  CLICKUP_CLIENT_ID?: string;
-  CLICKUP_CLIENT_SECRET?: string;
-  CLICKUP_REDIRECT_URI?: string;
-  DOCS_BUCKET: R2Bucket;
-  CLICKUP_TOKEN?: string;
-  CLICKUP_TEAM_ID?: string;
 }
 
 export default {
@@ -124,13 +59,16 @@ export default {
       }
 
       const coderResponse = await handleCoderRoutes(request, env);
-      if (coderResponse) {
-        return coderResponse;
+      if (coderResponse) return coderResponse;
+
+      if (path === '/api/v1/ingest' && request.method === 'POST') {
+        return ingest(request, env);
       }
 
       if (path === '/api/seed-tasks' && request.method === 'POST') {
         const contentType = request.headers.get('Content-Type') || '';
         const text = await request.text();
+
         try {
           if (contentType.includes('application/json')) {
             await seedFromJSON(text, env);
@@ -164,9 +102,8 @@ export default {
       }
 
       return new Response('Not Found', { status: 404 });
-
     } catch (error) {
-      logger.error('Unhandled error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Unhandled error', toError(error));
       return new Response('Internal Server Error', { status: 500 });
     }
   },
@@ -185,7 +122,7 @@ export default {
       }
 
     } catch (error) {
-      logger.error('Cron job error:', error instanceof Error ? error : new Error(String(error)));
+      logger.error('Cron job error', toError(error));
     }
   }
 };

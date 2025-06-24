@@ -1,5 +1,12 @@
 /.DS_Store
 node_modules/
 dist/
+.dev.vars
+*.env
+*.local
+*.log
+temp/
+*.tmp
 .DS_Store
+
 
