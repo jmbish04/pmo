@@ -16,8 +16,14 @@ jobs:
         with:
           version: 8
 
+      - name: Debug:Show Current Directory & Lockfile
+        run: |
+          pwd
+          ls -lah          
+
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: ./  # update if not root
 
       - name: Build
         run: pnpm run build
