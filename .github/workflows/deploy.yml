@@ -7,34 +7,39 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ./  # Ensure all commands run in repo root
+    name: Deploy Cloudflare Worker
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          path: .  # Prevent /pmo/pmo nesting issue
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
 
-      - name: Migrate
+      - name: Run Migrations
         run: pnpm run migrate:all
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy with Wrangler
-        run: npx wrangler deploy --env production
+      - name: Deploy to Cloudflare
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "3.55.0" # optional pin
+          command: deploy --env production
+          secrets: |
+            WEBHOOK_TOKEN
         env:
-          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+
+      - name: Print Deployment URL
+        run: echo "🚀 Deployed to ${{ steps.deploy.outputs.deployment-url }}"
