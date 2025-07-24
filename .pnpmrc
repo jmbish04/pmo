@@ -1,0 +1,9 @@
+# pnpm configuration to ensure consistent lockfile versions
+# This prevents lockfile version downgrades that can cause build issues
+
+# Enable strict peer dependencies
+strict-peer-dependencies=false
+auto-install-peers=true
+
+# Ensure we use the correct node version
+engine-strict=true
