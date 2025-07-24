@@ -106,7 +106,7 @@ export default {
 
       // ClickUp webhook
       if (path === '/webhook/clickup' && request.method === 'POST') {
-        return handleClickUpWebhook(request, env);
+        return handleClickUpWebhook(request, env, ctx);
       }
 
       // Manual sync trigger
@@ -139,9 +139,13 @@ export default {
       });
 
       if (event.cron === '0 * * * *') {
-        await handleHourlySync(env, ctx);
+        // Create a mock request for hourly sync
+        const mockRequest = new Request('internal://sync/hourly', { method: 'POST' });
+        await handleHourlySync(mockRequest, env, ctx);
       } else if (event.cron === '0 */6 * * *') {
-        await handlePeriodicSync(env, ctx);
+        // Create a mock request for periodic sync
+        const mockRequest = new Request('internal://sync/periodic', { method: 'POST' });
+        await handlePeriodicSync(mockRequest, env, ctx);
       }
 
     } catch (error) {
