@@ -462,7 +462,28 @@ For issues and questions:
 
 ---
 
-**Note**: This system is designed for production use with proper ClickUp API credentials and Cloudflare infrastructure setup. The AI enrichment features are currently stubbed and ready for integration with actual AI services. 
+**Note**: This system is designed for production use with proper ClickUp API credentials and Cloudflare infrastructure setup. The AI enrichment features are currently stubbed and ready for integration with actual AI services.
+
+## 📋 Task Tracking & Development Status
+
+### AI Coding Tasks
+This project maintains comprehensive task tracking for AI-related development work:
+
+- **[AI_CODING_TASKS.md](./AI_CODING_TASKS.md)** - Complete list of 44 AI coding tasks organized by priority
+- **[TODO.md](./TODO.md)** - Sprint planning and completed infrastructure tasks
+- **Build Status** - Current build has 9 TypeScript errors that need resolution
+
+### Current Development Focus
+1. **Critical Issues** - Fix build errors and missing implementations
+2. **AI Integration** - Replace stub implementations with actual AI service calls  
+3. **Agent Enhancement** - Complete partial agent implementations
+4. **Feature Expansion** - Add advanced AI-powered features
+
+### Getting Involved
+- Review the AI_CODING_TASKS.md for available work items
+- Check existing agent implementations for patterns to follow
+- Ensure all AI integrations include proper error handling and fallbacks
+- Add tests for any new AI functionality
 
 ### AI Writer System
 
@@ -572,5 +593,70 @@ The AI Writer system provides comprehensive file management:
 4. **Review**: Human or automated review of generated content
 5. **Integration**: Apply generated content to codebase
 6. **Archive**: Move completed files to archive or delete
+
+## 🤖 AI Coding Tasks & Project Status
+
+### Current Implementation Status
+This project is under active development with a comprehensive AI-powered multi-agent system. The current implementation includes both completed features and areas requiring additional AI coding work.
+
+### AI Task Tracking
+For a comprehensive list of all AI-related coding tasks that need to be completed, see **[AI_CODING_TASKS.md](./AI_CODING_TASKS.md)**. This document tracks:
+
+- **Critical Priority Tasks** (6 tasks) - Blocking build/runtime issues
+- **High Priority Tasks** (17 tasks) - Core AI functionality implementation  
+- **Medium Priority Tasks** (10 tasks) - Enhanced AI features
+- **Low Priority Tasks** (11 tasks) - Polish and optimization
+
+### Quick Task Summary by Category
+
+| Category | Status | Description |
+|----------|--------|-------------|
+| **AI Integration** | 🔴 In Progress | OpenAI/Gemini API implementations needed |
+| **Agent System** | 🟡 Partial | Most agents have stub implementations |
+| **ClickUp Integration** | 🟡 Partial | Basic sync works, advanced features needed |
+| **Documentation** | 🟢 Good | Core docs exist, AI writer system in progress |
+| **Infrastructure** | 🔴 Critical | Build issues need immediate attention |
+| **Testing** | 🟡 Basic | Core tests exist, AI integration tests needed |
+
+### AI Implementation Progress
+
+#### ✅ Completed AI Features
+- Multi-agent orchestration framework
+- Agent communication and flow management  
+- Basic task enrichment structure
+- AI Writer system foundation
+- Prompt template system
+- Agent health monitoring framework
+
+#### 🚧 In Progress AI Features  
+- OpenAI/Gemini API integration (stub implementations exist)
+- Advanced task enrichment with AI
+- Intelligent project structure generation
+- AI-powered conflict resolution
+
+#### 📋 Planned AI Features
+- Intelligent task categorization and tagging
+- AI-powered effort estimation
+- Smart dependency detection  
+- Automated subtask generation
+- AI-driven project insights and analytics
+- Predictive project health monitoring
+
+### Development Priorities
+
+1. **Fix Critical Build Issues** - Resolve TypeScript errors and missing dependencies
+2. **Complete Core AI Integration** - Implement actual OpenAI/Gemini API calls
+3. **Enhance Agent Capabilities** - Replace stub implementations with full AI logic
+4. **Add Advanced AI Features** - Implement intelligent task analysis and recommendations
+
+### Contributing to AI Features
+
+When working on AI-related features:
+
+1. Check the [AI_CODING_TASKS.md](./AI_CODING_TASKS.md) for current task status
+2. Update task status when beginning work
+3. Follow the established agent patterns for new AI features
+4. Add comprehensive tests for AI integrations
+5. Document AI prompts and model configurations
 
 ### Orchestration Flows
