@@ -13,7 +13,7 @@ import { handleSync as clickUpSync } from './clickup/sync';
  * Handle periodic sync (triggered by cron)
  */
 export async function handlePeriodicSync(
-  request: Request,
+  env: Env,
   env: any,
   ctx: ExecutionContext
 ): Promise<Response> {
