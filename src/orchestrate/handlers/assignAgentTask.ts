@@ -1,11 +1,11 @@
 /**
  * Assign Agent Task Handler
- * 
+ *
  * Handles POST /orchestrate/assign-agent-task requests to create
  * AI agent task files in R2 storage.
  */
 
-import { writeAgentFile, AgentTask } from '../../ai/aiWriter';
+import { writeAgentFile, AgentTask, AgentFileMetadata } from '../../ai/aiWriter';
 import { logger } from '../../utils/logger';
 
 export interface AssignAgentTaskRequest {
@@ -25,7 +25,7 @@ export interface AssignAgentTaskResponse {
   data?: {
     fileKey: string;
     presignedUrl?: string;
-    metadata: AgentTask & { id?: string; fileKey?: string; createdAt?: string };
+    metadata: AgentFileMetadata & { id?: string; fileKey?: string; createdAt?: string };
   };
   error?: string;
 }
@@ -107,7 +107,7 @@ export async function handleAssignAgentTask(
       data: {
         fileKey: result.fileKey,
         presignedUrl: result.presignedUrl,
-        metadata: result.metadata as any
+        metadata: result.metadata as AgentFileMetadata
       }
     };
 
@@ -160,4 +160,4 @@ export function handleAssignAgentTaskOptions(): Response {
       'Access-Control-Max-Age': '86400'
     }
   });
-} 
+}

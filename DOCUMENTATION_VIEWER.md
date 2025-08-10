@@ -33,7 +33,7 @@ A complete documentation delivery system built with Cloudflare Workers + R2, fea
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Deploy to Cloudflare Workers
 npx wrangler deploy
@@ -114,7 +114,7 @@ For Remix applications, use the React component version.
 #### Installation
 
 ```bash
-npm install react @remix-run/react @remix-run/node
+pnpm install react @remix-run/react @remix-run/node
 ```
 
 #### Usage
@@ -326,16 +326,16 @@ const customSections = [
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start local development server
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Deploy to Cloudflare Workers
-npm run deploy
+pnpm run deploy
 ```
 
 ### File Structure
@@ -401,7 +401,7 @@ Access `public/docs-viewer.html` for a standalone documentation site.
 Enable debug logging by setting the `DEBUG` environment variable:
 
 ```bash
-DEBUG=true npm run dev
+DEBUG=true pnpm run dev
 ```
 
 ## Performance

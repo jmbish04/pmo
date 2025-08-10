@@ -1,6 +1,6 @@
 /**
  * AI Writer Module
- * 
+ *
  * Handles the creation and management of .agent.md files in R2 storage.
  * These files serve as task assignments for AI agents to collaborate on.
  */
@@ -20,6 +20,12 @@ export interface AgentTask {
   metadata?: Record<string, any>;
 }
 
+export interface AgentFileMetadata {
+  title: string;
+  goal: string;
+  details: string[];
+}
+
 export async function writeAgentFile({
   title,
   file,
@@ -31,12 +37,12 @@ export async function writeAgentFile({
   file: string;
   goal: string;
   details?: string[];
-  env: any;
+  env: { R2: R2Bucket };
 }): Promise<{
   success: boolean;
   fileKey: string;
   presignedUrl?: string;
-  metadata: Record<string, any>;
+  metadata: AgentFileMetadata;
   error?: string;
 }> {
   try {
