@@ -1,6 +1,6 @@
 /**
  * Cloudflare Workers Entry Point
- * 
+ *
  * Handles:
  * - ClickUp Webhooks
  * - Task orchestration
@@ -22,11 +22,148 @@ import { handleCoderRoutes } from './routes/coder';
 import { ingest } from './routes/ingest';
 import { handlePeriodicSync, handleHourlySync, handleSync } from './sync';
 
+// Assumes these types are globally available (e.g., in worker-configuration.d.ts)
+// For clarity, they would look something like this:
+//
+// interface D1Database { ... }
+// interface KVNamespace { ... }
+// interface R2Bucket { ... }
+// interface ExecutionContext { ... }
+
 interface ScheduledEvent {
   cron: string;
   scheduledTime: number;
   type: string;
 }
+
+export interface Env {
+  DB: D1Database;
+  KV: KVNamespace;
+  AI: any;
+  CLICKUP_API_KEY: string;
+  DALL_E_ENDPOINT: string;
+  CLICKUP_CLIENT_ID?: string;
+  CLICKUP_CLIENT_SECRET?: string;
+  CLICKUP_REDIRECT_URI?: string;
+  DOCS_BUCKET: R2Bucket;
+  CLICKUP_TOKEN?: string;
+  CLICKUP_TEAM_ID?: string;
+}
+
+// Ensures tables are created only once per worker instance
+let tablesReady: Promise<void> | null = null;
+function initTables(env: Env): Promise<void> {
+  if (!tablesReady) {
+    tablesReady = ensureTables(env);
+  }
+  return tablesReady;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // Initialize database tables on first request
+    await initTables(env);
+
+    try {
+      // Health check endpoint
+      if (path === '/health') {
+        return Response.json({ status: 'ok', timestamp: new Date().toISOString() });
+      }
+
+      // Docs endpoints
+      if (path.startsWith('/api/docs/')) {
+        if (path === '/api/docs/assign-agent' && request.method === 'POST') {
+          return await handleAssignAgent(request, env, ctx);
+        }
+        const section = path.replace('/api/docs/', '');
+        return await handleDocsRequest(section, env, ctx);
+      }
+
+      // New task creation
+      if (path === '/tasks/new' && request.method === 'POST') {
+        return handleNewTask(request, env);
+      }
+
+      // Coder routes (start, complete, error, next)
+      const coderResponse = await handleCoderRoutes(request, env);
+      if (coderResponse) return coderResponse;
+
+      // Ingest route
+      if (path === '/api/v1/ingest' && request.method === 'POST') {
+        return ingest(request, env);
+      }
+
+      // Seed tasks from JSON or CSV
+      if (path === '/api/seed-tasks' && request.method === 'POST') {
+        const contentType = request.headers.get('Content-Type') || '';
+        const text = await request.text();
+        try {
+          if (contentType.includes('application/json')) {
+            await seedFromJSON(text, env);
+          } else if (contentType.includes('text/csv')) {
+            await seedFromCSV(text, env);
+          } else {
+            return new Response('Unsupported Content-Type for seeding.', { status: 415 });
+          }
+          return Response.json({ seeded: true });
+        } catch (err) {
+          logger.error('Seeding failed', toError(err));
+          return Response.json({ seeded: false, error: 'Failed to process seed data.' }, { status: 400 });
+        }
+      }
+
+      // ClickUp webhook
+      if (path === '/webhook/clickup' && request.method === 'POST') {
+        return handleClickUpWebhook(request, env, ctx);
+      }
+
+      // Manual sync trigger
+      if (path === '/sync' && request.method === 'POST') {
+        return handleSync(request, env, ctx);
+      }
+
+      // Orchestration endpoint
+      if (path.startsWith('/orchestrate')) {
+        if (path === '/orchestrate/assign-agent-task') {
+          if (request.method === 'OPTIONS') return handleAssignAgentTaskOptions();
+          if (request.method === 'POST') return await handleAssignAgentTask(request, env);
+        }
+        const orchestrator = new Orchestrator(env);
+        return await orchestrator.handleRequest(request);
+      }
+
+      return new Response('Not Found', { status: 404 });
+    } catch (error) {
+      logger.error('Unhandled error in fetch', toError(error));
+      return new Response('Internal Server Error', { status: 500 });
+    }
+  },
+
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    try {
+      logger.info('🕐 Cron job triggered', {
+        cron: event.cron,
+        timestamp: new Date().toISOString()
+      });
+
+      // Route cron jobs to appropriate handlers
+      if (event.cron === '0 * * * *') { // Every hour
+        const mockRequest = new Request('internal://sync/hourly', { method: 'POST' });
+        await handleHourlySync(mockRequest, env, ctx);
+      } else if (event.cron === '0 */6 * * *') { // Every 6 hours
+        const mockRequest = new Request('internal://sync/periodic', { method: 'POST' });
+        await handlePeriodicSync(mockRequest, env, ctx);
+      }
+
+    } catch (error) {
+      logger.error('Cron job error', toError(error));
+    }
+  }
+};
+
 
 export interface Env {
   DB: D1Database;
@@ -76,6 +213,39 @@ export default {
         return handleNewTask(request, env);
       }
 
+
+      // Coder routing endpoints
+      if (path === '/api/coder/start-task' && request.method === 'POST') {
+        await ensureTables(env);
+        return coderStartTask(request, env);
+      }
+      if (path === '/api/coder/complete-task' && request.method === 'POST') {
+        await ensureTables(env);
+        return completeTask(request, env);
+      }
+      if (path === '/api/coder/report-error' && request.method === 'POST') {
+        await ensureTables(env);
+        return reportError(request, env);
+      }
+      if (path === '/api/next-task' && request.method === 'GET') {
+        await ensureTables(env);
+        return nextTask(request, env);
+      }
+
+      if (path === '/api/seed-tasks' && request.method === 'POST') {
+        await ensureTables(env);
+        const contentType = request.headers.get('Content-Type') || '';
+        const text = await request.text();
+        if (contentType.includes('application/json')) {
+          await seedFromJSON(text, env);
+        } else {
+          await seedFromCSV(text, env);
+        }
+        return Response.json({ seeded: true });
+      }
+
+      // ClickUp webhook routes
+
       // Coder routes (start, complete, error, next)
       const coderResponse = await handleCoderRoutes(request, env);
       if (coderResponse) return coderResponse;
@@ -105,6 +275,7 @@ export default {
       }
 
       // ClickUp webhook
+
       if (path === '/webhook/clickup' && request.method === 'POST') {
         return handleClickUpWebhook(request, env, ctx);
       }

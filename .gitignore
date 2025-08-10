@@ -1,6 +1,7 @@
 /.DS_Store
 node_modules/
 dist/
+
 .dev.vars
 *.env
 *.local
@@ -8,3 +9,4 @@ dist/
 temp/
 *.tmp
 .DS_Store
+

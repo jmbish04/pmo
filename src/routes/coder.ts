@@ -67,10 +67,11 @@ export async function nextTask(req: Request, env: Env): Promise<Response> {
       params.push(projectId);
     }
 
-    // Could filter by coderType if task type column exists later
+    // Could filter by coderType if a task type column exists later
     query += ' ORDER BY priority DESC LIMIT 1';
 
     const result = await env.DB.prepare(query).bind(...params).first();
+
     if (!result) {
       return Response.json({ task: null });
     }
